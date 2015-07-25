@@ -1,0 +1,9 @@
+[submodule "rotjs"]
+	path = rotjs
+	url = https://github.com/ondras/rot.js.git
+[submodule "peerjs"]
+	path = peerjs
+	url = https://github.com/peers/peerjs.git
+[submodule "systemjs"]
+	path = systemjs
+	url = https://github.com/systemjs/systemjs.git
