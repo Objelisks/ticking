@@ -3,6 +3,7 @@
 
 // code page 437
 
+
 Array.prototype.each = Array.prototype.forEach;
 
 
@@ -15,9 +16,19 @@ var camera = {
 var display = new ROT.Display({width:camera.width, height: camera.height});
 document.body.appendChild(display.getContainer());
 
+var terrainCache = {};
+
+
 var terrain = {
     get: function(x, y) {
-        return {img:'.', fg:'rgb(30,150,30)',bg:'rgb(10,10,10)'};
+        var cached = null;//terrainCache[x+','+y];
+        if(cached) {
+            return cached;
+        } else {
+            var val = generateTerrain(x, y);
+            terrainCache[x+','+y] = val;
+            return val;
+        }
     },
     render: function(display, camera) {
         for(var x=0; x<camera.width; x++) {
