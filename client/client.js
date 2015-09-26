@@ -18,7 +18,6 @@ document.body.appendChild(display.getContainer());
 
 var terrainCache = {};
 
-
 var terrain = {
     get: function(x, y) {
         var cached = null;//terrainCache[x+','+y];
@@ -102,7 +101,7 @@ structures.push(swcorner);
 var draw = function(display, camera) {
     return {
         player: function(obj) {
-            display.draw(obj.x-camera.x, obj.y-camera.y, obj.img, obj.fg);
+            display.draw(obj.x-camera.x+0.002, obj.y-camera.y, obj.img, obj.fg, 'rgba(0,0,0,0)');
         },
         lowerLayer: function(obj) {
             obj.lower.each(function(ch, i) {
