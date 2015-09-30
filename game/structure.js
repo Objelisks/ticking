@@ -1,7 +1,7 @@
 var ROT = require('rot-js');
 
 exports.module = {
-  render: function(display) {
+  render: function(display, structure) {
 
   }
 }

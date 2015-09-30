@@ -28,12 +28,15 @@ var terrainCache = {};
 
 var terrain = {
     get: function(x, y) {
-        var cached = null;//terrainCache[x+','+y];
+        var cached = terrainCache[x+','+y];
         if(cached) {
             return cached;
         } else {
             var val = generateTerrain(x, y);
             terrainCache[x+','+y] = val;
+            val.strs.each(function(str) {
+              structures.push(str);
+            });
             return val;
         }
     },
@@ -48,7 +51,7 @@ var terrain = {
 };
 var players = [];
 var structures = [];
-
+var collisionMap = {};
 
 var localPlayer = {
     x: 5,
@@ -59,14 +62,21 @@ var localPlayer = {
 
 window.addEventListener('keydown', function(e) {
     var key = e.keyCode;
+    var move = {x:0, y:0};
     if(key === ROT.VK_UP) {
-        localPlayer.y -= 1;
+        move.y -= 1;
     } else if(key === ROT.VK_DOWN) {
-        localPlayer.y += 1;
+        move.y += 1;
     } else if(key === ROT.VK_LEFT) {
-        localPlayer.x -= 1;
+        move.x -= 1;
     } else if(key === ROT.VK_RIGHT) {
-        localPlayer.x += 1;
+        move.x += 1;
+    }
+    var newX = localPlayer.x + move.x;
+    var newY = localPlayer.y + move.y;
+    if(collisionMap[newX+'_'+newY] !== 1) {
+      localPlayer.x = newX;
+      localPlayer.y = newY;
     }
 });
 
@@ -76,8 +86,9 @@ var tree = {
     x: 9, y: 9,
     width: 3,
     upper: ['','♣','',
-            '♣','█','♣'],
-    lower: ['','╬',''],
+            '','', ''],
+    lower: ['','', '',
+            '','║',''],
     fg: ['#2a2','#2a2', '#2a2',
             '','#973',''],
     bg: [],
@@ -101,28 +112,31 @@ ROT.Color.toRGBA = function(c, a) {
     return 'rgba(' + c[0] + ',' + c[1] + ',' + c[2] + ',' + a + ')';
 }
 
-console.log(ROT.Color.toRGBA(c, 50));
-
 structures.push(tree);
 structures.push(swcorner);
 
 var draw = function(display, camera) {
     return {
         player: function(obj) {
-            display.draw(obj.x-camera.x+0.002, obj.y-camera.y, obj.img, obj.fg, 'rgba(0,0,0,0)');
+            var x = obj.x-camera.x;
+            var y = obj.y-camera.y;
+            display.draw(x, y, obj.img, obj.fg, terrain.get(x,y).bg);
         },
         lowerLayer: function(obj) {
             obj.lower.each(function(ch, i) {
                 if(ch === '') return;
-                display.draw(obj.x-camera.x + i%obj.width, obj.y-camera.y + Math.floor(i/obj.width), ch, obj.fg[i], obj.bg[i]);
+                var x = obj.x-camera.x + i%obj.width;
+                var y = obj.y-camera.y + Math.floor(i/obj.width);
+                display.draw(x, y, ch, obj.fg[i], obj.bg[i] ? obj.bg[i] : terrain.get(x, y).bg);
+                collisionMap[x+'_'+y] = obj.collision[i];
             });
         },
         upperLayer: function(obj) {
             obj.upper.each(function(ch, i) {
                 if(ch === '') return;
-                var alpha = 50;
-                var fg = ROT.Color.toRGBA(ROT.Color.fromString(obj.fg[i]), alpha);
-                display.draw(obj.x-camera.x + i%obj.width + 0.001, obj.y-camera.y + Math.floor(i/obj.width), ch, fg, 'rgba(0,0,0,0)');
+                var x = obj.x-camera.x + i%obj.width;
+                var y = obj.y-camera.y + Math.floor(i/obj.width);
+                display.draw(x, y, ch, obj.fg[i], terrain.get(x, y).bg);
             });
         }
     }
@@ -131,7 +145,9 @@ var draw = function(display, camera) {
 var render = function() {
     requestAnimationFrame(render);
     terrain.render(display, camera);
-    structures.each(function(structure) { draw(display, camera).lowerLayer(structure); });
+    structures.each(function(structure) {
+      draw(display, camera).lowerLayer(structure);
+    });
     players.each(function(player) { draw(display, camera).player(player); });
     structures.each(function(structure) { draw(display, camera).upperLayer(structure); });
 }
@@ -154,12 +170,37 @@ Array.prototype.lerp = function(x) {
 var grassyPlainsSprites = ['.',',','`','"'];
 var grassyPlainsPalette = [[100,105,32], [105,114,18]];
 
+var tree = {
+    x: 9, y: 9,
+    width: 3,
+    upper: ['','♣','',
+            '','', ''],
+    lower: ['','', '',
+            '','║',''],
+    fg: ['#2a2','#2a2', '#2a2',
+            '','#973',''],
+    bg: [],
+    collision: [0,0,0,0,1,0]
+
+}
+
 var generateTerrain = function(x, y) {
     var val = (simplex.noise2D(x/10.0, y/10.0)+1.0)/2.0;
     var img = grassyPlainsSprites.lerp(val);
     var fg = ROT.Color.interpolate(grassyPlainsPalette[0], grassyPlainsPalette[1], val);
     var bg = ROT.Color.interpolate(fg, [0,0,0], 0.25);
-    return {img: img, fg: ROT.Color.toRGB(fg), bg: ROT.Color.toRGB(bg) };
+    var structures = [];
+    if(val > 0.9) {
+      var newTree = Object.create(tree);
+      newTree.x = x;
+      newTree.y = y;
+      structures.push(newTree);
+    }
+    return {img: img, fg: ROT.Color.toRGB(fg), bg: ROT.Color.toRGB(bg), strs:structures };
+}
+
+var generateTrees = function(x, y) {
+
 }
 
 module.exports = generateTerrain;
