@@ -3,6 +3,13 @@
 
 // code page 437
 
+var ROT = require('rot-js');
+
+var io = require('socket.io-client');
+console.log(io);
+
+var generateTerrain = require('../game/terrain.js');
+
 
 Array.prototype.each = Array.prototype.forEach;
 
@@ -67,14 +74,14 @@ players.push(localPlayer);
 var tree = {
     x: 9, y: 9,
     width: 3,
-    upper: [' ','♣',' ',
+    upper: ['','♣','',
             '♣','█','♣'],
     lower: ['','╬',''],
     fg: ['#2a2','#2a2', '#2a2',
             '','#973',''],
     bg: [],
     collision: [0,0,0,0,1,0]
-    
+
 }
 
 var swcorner = {

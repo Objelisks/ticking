@@ -1,3 +1,8 @@
+var Alea = require('alea');
+var SimplexNoise = require('simplex-noise');
+var ROT = require('rot-js');
+
+
 var alea = new Alea(1004);
 var simplex = new SimplexNoise(alea);
 
@@ -15,3 +20,5 @@ var generateTerrain = function(x, y) {
     var bg = ROT.Color.interpolate(fg, [0,0,0], 0.25);
     return {img: img, fg: ROT.Color.toRGB(fg), bg: ROT.Color.toRGB(bg) };
 }
+
+module.exports = generateTerrain;
